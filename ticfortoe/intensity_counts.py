@@ -1,11 +1,12 @@
 import collections
 import pandas as pd
+from itertools import islice
 import tqdm
 
-from itertools import islice
 from timspy.df import all_columns
 from timspy.df import TimsPyDF
 from typing import Dict, Iterable
+
 
 
 conditions = {"singly_charged":  "inv_ion_mobility >= .0009*mz + .4744",
