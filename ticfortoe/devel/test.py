@@ -1,20 +1,37 @@
 from ticfortoe.intensity_counts import get_intensity_distribution_df
+import pathlib
+
+# test_path = "/home/matteo/raw_data/majestix/M201203_013_Slot1-1_1_708.d"
+path = pathlib.Path("/home/services/Projects/ticfortoe/test_data")
+output_folder = pathlib.Path("/home/services/Projects/ticfortoe/test_outputs")
+
+raw_folder_to_intensity = {}
+for raw_folder in path.glob("M*.d"):
+    try:
+        # intensity_distribution = get_intensity_distribution_df(
+        #     raw_folder,    
+        #     verbose=True,
+        #     min_frame=10,
+        #     max_frame=15
+        # )
+        intensity_distribution = get_intensity_distribution_df(
+            raw_folder,
+            verbose=True
+        )
+        print(intensity_distribution)
+
+        raw_folder_to_intensity[raw_folder] = intensity_distribution
+        intensity_distribution["total_intensity"] = intensity_distribution.intensity * intensity_distribution.N
+        TIC_summary = intensity_distribution.groupby("condition_name").total_intensity.sum().to_frame()
+        res_folder = output_folder/raw_folder.stem
+        res_folder.mkdir(exist_ok=True, parents=True)
+        TIC_summary.to_csv(res_folder/"TIC_summary.csv")
+        intensity_distribution.to_csv(res_folder/"intensity_distribution.csv")
+    except RuntimeError:
+        pass
 
 
-intensity_distribution = get_intensity_distribution_df(
-    "/home/matteo/raw_data/majestix/M201203_013_Slot1-1_1_708.d",
-    verbose=True,
-    min_frame=10,
-    max_frame=15
-)
 
-intensity_distribution = get_intensity_distribution_df(
-    "/home/matteo/raw_data/majestix/M201203_013_Slot1-1_1_708.d",
-    verbose=True
-)
-
-intensity_distribution.groupby("condition_name").intensity.sum()
-intensity_distribution.to_csv("test.csv")
 
 
 # this will be needed to get the paths..
