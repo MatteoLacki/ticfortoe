@@ -1,3 +1,5 @@
+%load_ext autoreload
+%autoreload 2
 from ticfortoe.intensity_counts import get_intensity_distribution_df
 import pathlib
 
