@@ -3,15 +3,17 @@ import pandas as pd
 import tqdm
 from itertools import islice
 from math import ceil
+import pathlib
 
 from timspy.df import all_columns
 from timspy.df import TimsPyDF
 from typing import Dict, Iterable
 
 
-
-conditions = {"singly_charged":  "inv_ion_mobility >= .0009*mz + .4744",
-              "multiply_charged":"inv_ion_mobility <  .0009*mz + .4744"}
+conditions = {
+    "singly_charged": "inv_ion_mobility >= .0009*mz + .4744",
+    "multiply_charged": "inv_ion_mobility <  .0009*mz + .4744",
+}
 
 
 def parse_conditions_for_column_names(conditions):
@@ -25,7 +27,7 @@ def parse_conditions_for_column_names(conditions):
 
 def sum_conditioned_counters(conditioned_counters, conditions):
     """Sum counters in dictionaries.
-        
+
     Simply aggregates different counters.
 
     Args:
@@ -50,7 +52,7 @@ def sum_counters(counters):
 
 
 def counter2df(counter, values_name="intensity"):
-    """Represent a counter as a data frame. 
+    """Represent a counter as a data frame.
 
     Args:
         counter (dict): A mapping between values and counts.
@@ -59,7 +61,9 @@ def counter2df(counter, values_name="intensity"):
     Return:
         pd.DataFrame: A data frame with values and counts, sorted by values.
     """
-    return pd.DataFrame(dict(zip((values_name,"N"), zip(*counter.items())))).sort_values(values_name)
+    return pd.DataFrame(
+        dict(zip((values_name, "N"), zip(*counter.items())))
+    ).sort_values(values_name)
 
 
 def batch_iter(iterables, batch_size=10):
@@ -75,10 +79,10 @@ def batch_iter(iterables, batch_size=10):
 
 def iter_conditional_intensity_counts(
     raw_data: TimsPyDF,
-    conditions: Dict[str,str] = conditions,
-    frame_numbers: list=None,
-    batch_size: int=10,
-    verbose: bool=False
+    conditions: Dict[str, str] = conditions,
+    frame_numbers: list = None,
+    batch_size: int = 10,
+    verbose: bool = False,
 ) -> Iterable[Dict[str, collections.Counter]]:
     column_names = parse_conditions_for_column_names(conditions)
     column_names.append("intensity")
@@ -90,9 +94,10 @@ def iter_conditional_intensity_counts(
         frame_batches = tqdm.tqdm(frame_batches, total=total_batches)
     for frame_batch in frame_batches:
         frame = raw_data.query(frame_batch, column_names)
-        yield {condition_name: collections.Counter(frame.query(condition).intensity) 
-               for condition_name, condition in conditions.items()}
-
+        yield {
+            condition_name: collections.Counter(frame.query(condition).intensity)
+            for condition_name, condition in conditions.items()
+        }
 
 
 def intensity_counts_to_df(intensity_count):
@@ -111,20 +116,21 @@ def intensity_counts_to_df(intensity_count):
 
 def get_intensity_distribution_df(
     path_to_data: str,
-    conditions: Dict[str,str] = conditions,
-    frame_numbers: list=None,
+    conditions: Dict[str, str] = conditions,
+    frame_numbers: list = None,
     min_frame: int = None,
     max_frame: int = None,
     batch_size: int = 10,
-    verbose: bool=False
+    verbose: bool = False,
 ):
     raw_data = TimsPyDF(path_to_data)
     conditional_intensity_counts = iter_conditional_intensity_counts(
-        raw_data,
-        conditions,
-        batch_size=batch_size,
-        verbose=verbose
+        raw_data, conditions, batch_size=batch_size, verbose=verbose
     )
-    conditional_intensity_counts = islice(conditional_intensity_counts, min_frame, max_frame)
-    intensity_counts = sum_conditioned_counters(conditional_intensity_counts, conditions)
+    conditional_intensity_counts = islice(
+        conditional_intensity_counts, min_frame, max_frame
+    )
+    intensity_counts = sum_conditioned_counters(
+        conditional_intensity_counts, conditions
+    )
     return intensity_counts_to_df(intensity_counts)

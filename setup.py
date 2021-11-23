@@ -26,6 +26,8 @@ setup(
         'requests',
         'timspy',
         'tqdm',
-        'pandas'
+        'pandas',
+        'numpy==1.20',
+        'fast_histogram'
     ]
 )
