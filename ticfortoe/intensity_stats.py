@@ -26,7 +26,6 @@ class IntensityStatsMaker:
             [-1,*groups]
         )
 
-
     def get_one_group_frameset_by_frame_ids(self, frame_ids: List[int]):
         framesets = ffi.new(
             f"int32_t[{self._array_size}]",

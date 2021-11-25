@@ -12,12 +12,14 @@ import numpy as np
 import fast_histogram
 
 path = '/home/matteo/raw_data/majestix/M201203_013_Slot1-1_1_708.d'
+
 ism = IntensityStatsMaker(path)
 
 ms1frame = ism.raw.ms1_frames[100]
 mist = ism.get_intensity_summaries(ism.get_one_group_frameset_by_frame_ids([ms1frame]))[0]
 
 frame = pd.DataFrame(ism.raw.query(ms1frame, columns=['mz','scan','intensity']))
+
 mz_bin_borders = np.arange(1, 2002) - .5
 scan_bin_borders = np.arange(1 - 0.5, 1001 + 0.5)
 
@@ -51,9 +53,9 @@ def get_diffs(a, b):
     return actually_different, len(actually_different) / nonzero 
 
 get_diffs(numpyhist, fasthist)
-get_diffs(numpyhist, mist)
+diffs, perc_diff = get_diffs(numpyhist, mist)
 
-plt.hist(diffs[diffs != 0], bins=1001)
+plt.hist(diffs, bins=10000)
 plt.show()
 
 
