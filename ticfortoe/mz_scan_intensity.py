@@ -40,7 +40,7 @@ def get_TIC_conditional_on_mz_scan_intensity_bins(
     path: str,
     mz_bin_borders=None,
     scan_bin_borders=None,
-    mz_step: float = 0.5,
+    mz_step: float = 1,
     mz_left_offset: float = 0.5,
     mz_right_offset: float = 0.5,
     scan_step: int = 10,
