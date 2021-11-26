@@ -87,17 +87,15 @@ def get_TIC_conditional_on_mz_scan_intensity_bins(
             intensity=X["intensity"],
             **get_mz_scan_tics_kwargs
         )
-    return res, mz_bin_borders, scan_bin_borders
+    return res, mz_bin_borders, scan_bin_borders, intensity_thresholds
 
 
-def save(
-    stat_folder_path: str, res, x_bin_borders: np.array, y_bin_borders: np.array
-):
+def save(stat_folder_path: str, **kwargs):
     path = pathlib.Path(stat_folder_path)
     path.mkdir(parents=True, exist_ok=True)
-    np.save(file=path / "data.npy", arr=res)
-    np.save(file=path / "x_bin_borders.npy", arr=x_bin_borders)
-    np.save(file=path / "y_bin_borders.npy", arr=y_bin_borders)
+    for filename, obj in kwargs.items():
+        np.save(file=path/filename, arr=obj)
+
 
 
 def read(stat_folder_path: str, mmap_mode: str="r"):
