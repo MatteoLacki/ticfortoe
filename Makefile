@@ -3,7 +3,7 @@ install:
 	virtualenv ve_ticfortoe
 	ve_ticfortoe/bin/pip install IPython
 	ve_ticfortoe/bin/pip install -e .
-	ve_ticfortoe/bin/pip install -e ../paramidiac
+# 	ve_ticfortoe/bin/pip install -e ../paramidiac
 upload_test_pypi:
 	rm -rf dist || True
 	python setup.py sdist

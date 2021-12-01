@@ -1,15 +1,22 @@
+import glob
 import pathlib
 
 from redis import Redis
 from rq import Queue
 
-from ticfortoe.defaults import get_and_save_rasterized_TICs
+from ticfortoe.jobs import get_and_save_rasterized_TICs
 
 
-queue = Queue(connection=Redis(), name="ticfortoe")
-path = '/home/matteo/raw_data/majestix/M201203_013_Slot1-1_1_708.d'
+queue = Queue(
+    connection=Redis(
+        host='192.168.1.176',
+        port=6379, 
+        # db=0
+    ),
+    name="ticfortoe"
+)
 
-
+# path = '/home/matteo/raw_data/majestix/M201203_013_Slot1-1_1_708.d'
 # res = queue.enqueue(
 #     get_and_save_rasterized_TICs,
 #     kwargs={
@@ -18,8 +25,6 @@ path = '/home/matteo/raw_data/majestix/M201203_013_Slot1-1_1_708.d'
 #         "verbose": True
 #     }
 # )
-
-
 
 patterns = []
 for instr in ("gutamine", "falbala", "obelix", "majestix"):
@@ -31,19 +36,27 @@ def iter_raw_folders(patterns):
         for path in glob.iglob(pattern):
             yield pathlib.Path(path)
 
+raw_folders = list(iter_raw_folders(patterns))
+_total_number_of_files = len(raw_folders)
+
+
 output_folder = pathlib.Path("/mnt/ms/new/processed/.ticfortoe")
 output_folder.mkdir(parents=True, exist_ok=True)
 
 
 enqueued_jobs = []
-for raw_folder_No, raw_folder in enumerate(iter_raw_folders(patterns)):
+# raw_folder_No, raw_folder = next(enumerate(raw_folders))
+for raw_folder_No, raw_folder in enumerate(raw_folders):
     target_path = output_folder/raw_folder.stem
     enqueued_job = queue.enqueue(
         get_and_save_rasterized_TICs,
         kwargs={
             "rawdata_path": str(raw_folder),
             "target_path": "/tmp/test4",
-            "verbose": True
+            "verbose": True,
+            "_verbose": True,
+            "_total_number_of_files": _total_number_of_files,
+            "_file_number": raw_folder_No 
         }
     )
     enqueued_jobs.append(enqueued_job)
