@@ -26,12 +26,6 @@ def pivot(array, x_bin_centers, y_bin_centers):
     return df
 
 
-def get_bin_borders(_min, _max, base=10):
-    return np.arange(
-        floor(_min / base) * base,
-        (ceil(_max / base) + 1) * base,
-        base
-    )
 
 
 
