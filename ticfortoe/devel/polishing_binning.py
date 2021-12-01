@@ -28,7 +28,6 @@ binned_data = get_aggregates(
     scan=get_scan_bin_borders(rawdata)
 )
 
-
 binned_data.write("/tmp/test3")
 binned_data.to_xarray()
 
@@ -39,19 +38,11 @@ x = binned_data.indices_in_ranges(
     intensity=(10,50), 
     retention_time=(300, 500)
 )
-
-
-
-for idx, var_bin_borders in zip(x, binned_data.bin_borders.values()):
-    print(var_bin_borders[idx])
-
-
+binned_data.sum(intensity=(10,50), retention_time=(300, 500))
 aggreg_binned_data = binned_data.aggregate(
     intensity=(10,50), 
     retention_time=(300, 500)
 )
-
-
 aggreg_binned_data
 
 import matplotlib.pyplot as plt
@@ -59,11 +50,9 @@ plt.imshow(aggreg_binned_data.data)
 plt.show()
 
 binned_xa = binned_data.to_xarray()
-
 binned_xa.where(binned_xa.intensity > 100 )
 # binned_xa[binned_xa.intensity > 100]
 # bb_mmapped = BinnedData.read("/tmp/test3")
 
-binned_data.sum(intensity=(10,50), retention_time=(300, 500))
 
-
+# binned_data.plot(cmap="inferno")

@@ -1,5 +1,6 @@
 import numpy as np
 import fast_histogram
+import itertools
 import pathlib
 
 from dataclasses import dataclass
@@ -68,7 +69,6 @@ class BinnedData:
             ]
         )
 
-
     def indices_in_ranges(
         self, 
         tensor_coordinates=True, 
@@ -107,10 +107,29 @@ class BinnedData:
             }
         )
 
-    def plot(self, show=True):
+    def plot(
+        self, 
+        main_vars=("scan","mz"), 
+        show=True,
+        transform=lambda x: x,
+        **kwargs
+    ):
         import matplotlib.pyplot as plt
-        # self.data
-        # plt.imshow()
+        other_vars = [dim for dim in self.bin_borders if dim not in main_vars]
+        dims = [len(self.bin_borders[var])-1 for var in other_vars]
+        vmin = transform(self.data.min())
+        vmax = transform(self.data.max())
+        fig, axs = plt.subplots(*dims, sharex=True, sharey=True)
+        for idx in itertools.product(*map(range, dims)):
+            ax = axs[idx]
+            ax.imshow(
+                X=np.transpose(transform(self.data[idx])),
+                aspect='auto',
+                vmin=vmin,
+                vmax=vmax,
+                **kwargs
+            )
+        fig.subplots_adjust(wspace=0, hspace=0)
         if show:
             plt.show()
 
@@ -181,8 +200,6 @@ def get_aggregates(
         ), 
         bin_borders=bin_borders
     )
-
-
 
 
 if __name__ == "__main__":

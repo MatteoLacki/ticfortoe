@@ -14,3 +14,5 @@ upload_pypi:
 	twine upload dist/*
 py:
 	ve_ticfortoe/bin/ipython
+worker:
+	ve_ticfortoe/bin/rq worker ticfortoe
