@@ -6,15 +6,16 @@ from rq import Queue
 
 from ticfortoe.jobs import get_and_save_rasterized_TICs
 
+connection = Redis(
+    host='192.168.1.176',
+    port=6379, 
+)
 
 queue = Queue(
-    connection=Redis(
-        host='192.168.1.176',
-        port=6379, 
-        # db=0
-    ),
+    connection=connection,
     name="ticfortoe"
 )
+queue.empty()
 
 # path = '/home/matteo/raw_data/majestix/M201203_013_Slot1-1_1_708.d'
 # res = queue.enqueue(
@@ -48,11 +49,12 @@ enqueued_jobs = []
 # raw_folder_No, raw_folder = next(enumerate(raw_folders))
 for raw_folder_No, raw_folder in enumerate(raw_folders):
     target_path = output_folder/raw_folder.stem
+    print(f"Enquing raw folder No {raw_folder_No}/{_total_number_of_files}.")
     enqueued_job = queue.enqueue(
         get_and_save_rasterized_TICs,
         kwargs={
             "rawdata_path": str(raw_folder),
-            "target_path": "/tmp/test4",
+            "target_path": target_path,
             "verbose": True,
             "_verbose": True,
             "_total_number_of_files": _total_number_of_files,

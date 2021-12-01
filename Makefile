@@ -15,4 +15,4 @@ upload_pypi:
 py:
 	ve_ticfortoe/bin/ipython
 worker:
-	ve_ticfortoe/bin/rq worker ticfortoe
+	ve_ticfortoe/bin/python bin/worker.py ticfortoe
