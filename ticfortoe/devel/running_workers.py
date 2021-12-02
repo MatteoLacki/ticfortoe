@@ -6,16 +6,23 @@ from rq import Queue
 
 from ticfortoe.jobs import get_and_save_rasterized_TICs
 
-connection = Redis(
-    host='192.168.1.176',
-    port=6379, 
-)
+import os
+
+
+if os.uname().nodename == "pinguin":
+    connection = Redis()
+else: # must be in the lab
+    connection = Redis(
+        host='192.168.1.176',
+        port=6379, 
+    )
 
 queue = Queue(
     connection=connection,
     name="ticfortoe"
 )
-queue.empty()
+# queue.empty()
+
 
 # path = '/home/matteo/raw_data/majestix/M201203_013_Slot1-1_1_708.d'
 # res = queue.enqueue(

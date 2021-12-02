@@ -28,7 +28,7 @@ binned_data = get_aggregates(
     scan=get_scan_bin_borders(rawdata)
 )
 
-binned_data.write("/tmp/test3")
+binned_data.write("/home/matteo/Projects/ticfortoe/local_results/M201203_013_Slot1-1_1_708.d")
 binned_data.to_xarray()
 
 binned_data.indices_in_ranges(intensity=(10,50))
