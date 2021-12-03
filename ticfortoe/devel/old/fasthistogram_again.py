@@ -35,6 +35,8 @@ def to_df(data, mz_bin_borders, scan_bin_borders):
         index=mz_bin_mids,
     )
 
+
+
 def plot_wide_df(df_wide, show=True):
     import matplotlib.pyplot as plt
     plt.imshow(

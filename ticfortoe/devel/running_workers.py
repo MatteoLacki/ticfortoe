@@ -22,6 +22,7 @@ queue = Queue(
     name="ticfortoe"
 )
 # queue.empty()
+# queue.count
 
 
 # path = '/home/matteo/raw_data/majestix/M201203_013_Slot1-1_1_708.d'
@@ -48,15 +49,15 @@ raw_folders = list(iter_raw_folders(patterns))
 _total_number_of_files = len(raw_folders)
 
 
-output_folder = pathlib.Path("/mnt/ms/new/processed/.ticfortoe")
+output_folder = pathlib.Path("/mnt/ms/new/processed/.ticfortoe2")
 output_folder.mkdir(parents=True, exist_ok=True)
-
+output_folder.exists()
 
 enqueued_jobs = []
 # raw_folder_No, raw_folder = next(enumerate(raw_folders))
 for raw_folder_No, raw_folder in enumerate(raw_folders):
     target_path = output_folder/raw_folder.stem
-    print(f"Enquing raw folder No {raw_folder_No}/{_total_number_of_files}.")
+    print(f"Enquing raw folder No {raw_folder_No + 1}/{_total_number_of_files}.")
     enqueued_job = queue.enqueue(
         get_and_save_rasterized_TICs,
         kwargs={
@@ -69,3 +70,5 @@ for raw_folder_No, raw_folder in enumerate(raw_folders):
         }
     )
     enqueued_jobs.append(enqueued_job)
+
+
