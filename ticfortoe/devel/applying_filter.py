@@ -18,6 +18,8 @@ D = BinnedData.read(res_path, mmap_mode='r')
 scan, mz = D.get_variables_for_mask("scan","mz")
 
 
+
+
 multiply_charged = scan >= 970.114551 - 0.6924664 * mz# and user does some expression on it
 data_pp = D.data[:,:,multiply_charged].sum(axis=2)
 data_p  = D.data[:,:,~multiply_charged].sum(axis=2)
@@ -47,8 +49,8 @@ def MS1_TIC_composition_plot(
     rt_min = rt_sec / 60.0
 
     intensities = [data_p.sum(axis=0),*data_pp]
-
     intensities.reverse()
+
     plt.subplot(2, 1, 1)
     plt.scatter(
         rt_min,
