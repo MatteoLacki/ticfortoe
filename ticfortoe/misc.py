@@ -30,3 +30,5 @@ def points2coefs(x0, y0, x1, y1):
     slope = (y1-y0)/(x1-x0)
     intercept = y0 - slope*x0
     return intercept, slope
+
+

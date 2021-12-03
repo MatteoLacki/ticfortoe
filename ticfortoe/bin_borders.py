@@ -35,8 +35,8 @@ def get_retention_time_bin_borders(
         np.array: bin borders.    
     """
     return get_bin_borders(
-        rawdata.min_mz, 
-        rawdata.max_mz,
+        rawdata.min_retention_time, 
+        rawdata.max_retention_time,
         base=retention_time_bin_size
     )
 

@@ -2,13 +2,14 @@ import numpy as np
 import fast_histogram
 import itertools
 import pathlib
+from typing import Dict, Iterable, List
 
 from dataclasses import dataclass
 from tqdm import tqdm
 from opentimspy.opentims import OpenTIMS, all_columns
 
 from ticfortoe.iter_ops import batch_iter, get_batch_cnt
-from typing import Iterable, List
+from ticfortoe.misc import bin_borders_to_bin_centers
 
 
 
@@ -45,6 +46,13 @@ class BinnedData:
         np.save(file=folder/"data.npy", arr=self.data)
         for bin_var, var_bin_borders in self.bin_borders.items():
             np.save(folder/f"{bin_var}.npy", arr=var_bin_borders)
+
+    @property
+    def bin_centers(self) -> Dict[str, np.array]:
+        return {
+            variable_name: bin_borders_to_bin_centers(bin_borders)
+            for variable_name, bin_borders in self.bin_borders.items()
+        }
 
     @classmethod
     def read(cls, folder: str, mmap_mode: str='r'):
@@ -106,6 +114,17 @@ class BinnedData:
                 if name not in bin_ranges
             }
         )
+
+    def get_variables_for_mask(self, *variable_names):
+        bin_centers = self.bin_centers
+        return np.meshgrid(
+            *(bin_centers[variable_name] for variable_name in variable_names),
+            sparse=True
+        )
+
+    def get_retention_time_intensity_heatmap(self):
+        assert all(v in self.bin_borders for v in ('mz','intensity','retention_time','scan'))
+        
 
     def plot(
         self, 

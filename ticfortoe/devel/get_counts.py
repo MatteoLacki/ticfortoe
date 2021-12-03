@@ -19,7 +19,7 @@ rawdata = OpenTIMS(path)
 
 binned_data = get_aggregates(
     rawdata=rawdata,
-    statistic_name="TIC",
+    statistic_name="peak_count",
     frame_batch_size=100,
     verbose=True,
     intensity=get_intensity_bin_borders(),
@@ -28,5 +28,4 @@ binned_data = get_aggregates(
     scan=get_scan_bin_borders(rawdata)
 )
 
-binned_data.write("/home/matteo/Projects/ticfortoe/local_results/M201203_013_Slot1-1_1_708.d")
-# binned_data.to_xarray()
+binned_data.write("/home/matteo/Projects/ticfortoe/local_results/M201203_013_Slot1-1_1_708_peak_count")
