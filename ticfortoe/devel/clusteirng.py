@@ -1,3 +1,5 @@
+%load_ext autoreload
+%autoreload 2
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -10,13 +12,17 @@ from ticfortoe.binning import (
 # res_path = "/home/matteo/Projects/ticfortoe/ticfortoe_results/G210521_025_Slot1-29_1_1731"
 res_path = "/home/matteo/Projects/ticfortoe/local_results/M201203_013_Slot1-1_1_708.d"
 
-binned_data = BinnedData.read(res_path, mmap_mode='r')
-binned_data.plot()
 
+
+
+
+%%timeit
+binned_data = BinnedData.read(res_path, mmap_mode='r')
 data_2D = binned_data.aggregate(
     intensity=(200, 500),
     retention_time=(0,1700)
 )
+
 plt.imshow(data_2D.data.transpose(), aspect="auto")
 plt.show()
 
