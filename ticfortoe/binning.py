@@ -40,12 +40,12 @@ class BinnedData:
     data: np.array
     bin_borders: dict
 
-    def write(self, folder: str):
-        folder = pathlib.Path(folder)
-        folder.mkdir(parents=True, exist_ok=True)
-        np.save(file=folder/"data.npy", arr=self.data)
-        for bin_var, var_bin_borders in self.bin_borders.items():
-            np.save(folder/f"{bin_var}.npy", arr=var_bin_borders)
+    def write(self, file: str):
+        np.savez_compressed(
+            file=file,
+            data=self.data,
+            **self.bin_borders
+        )
 
     @property
     def bin_centers(self) -> Dict[str, np.array]:
@@ -55,15 +55,15 @@ class BinnedData:
         }
 
     @classmethod
-    def read(cls, folder: str, mmap_mode: str='r'):
-        folder = pathlib.Path(folder)
-        return cls(
-            data=np.load(folder/"data.npy", mmap_mode=mmap_mode),
-            bin_borders={
-                name: np.load(folder/f"{name}.npy", mmap_mode=mmap_mode)
-                for name in ("intensity", "retention_time", "mz", "scan")
-            }
-        )
+    def read(cls, file: str, mmap_mode: str='r'):
+        packed = np.load(file=file, mmap_mode=mmap_mode)
+        data = packed['data']
+        bin_borders = {}
+        for a in packed:
+            if a != "data":
+                bin_borders[a] = packed[a] 
+        return cls(data=packed["data"], bin_borders=bin_borders)
+
 
     def to_xarray(self):
         import xarray

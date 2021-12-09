@@ -13,15 +13,23 @@ from ticfortoe.binning import (
 res_path = "/home/matteo/Projects/ticfortoe/local_results/M201203_013_Slot1-1_1_708.d"
 
 
-
-
-
 %%timeit
 binned_data = BinnedData.read(res_path, mmap_mode='r')
 data_2D = binned_data.aggregate(
     intensity=(200, 500),
     retention_time=(0,1700)
 )
+
+
+binned_data.write(file="/tmp/test2.npz")
+
+%%timeit
+binned_data.read(file="/tmp/test2.npz")
+
+
+for a in Z:
+    print(a)
+list(Z)
 
 plt.imshow(data_2D.data.transpose(), aspect="auto")
 plt.show()
