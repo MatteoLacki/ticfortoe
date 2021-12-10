@@ -58,14 +58,13 @@ output_folder.exists()
 enqueued_jobs = []
 # raw_folder_No, raw_folder = next(enumerate(raw_folders))
 for raw_folder_No, raw_folder in enumerate(raw_folders):
-    target_path = output_folder/raw_folder.stem
+    target_path = output_folder/f"{raw_folder.stem}.npz"
     print(f"Enquing raw folder No {raw_folder_No + 1}/{_total_number_of_files}.")
     enqueued_job = queue.enqueue(
         get_and_save_rasterized_TICs,
         kwargs={
             "rawdata_path": str(raw_folder),
-            "target_path": target_path,
-            "verbose": True,
+            "target_path": str(target_path),
             "_verbose": True,
             "_total_number_of_files": _total_number_of_files,
             "_file_number": raw_folder_No 
@@ -73,4 +72,5 @@ for raw_folder_No, raw_folder in enumerate(raw_folders):
     )
     enqueued_jobs.append(enqueued_job)
 
-
+# from ticfortoe.binning import BinnedData
+# BinnedData.read(output_folder/f"{raw_folder.stem}.npz")
