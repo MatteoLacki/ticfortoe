@@ -9,7 +9,10 @@ from tqdm import tqdm
 from opentimspy.opentims import OpenTIMS, all_columns
 
 from ticfortoe.iter_ops import batch_iter, get_batch_cnt
-from ticfortoe.misc import bin_borders_to_bin_centers
+from ticfortoe.misc import (
+    bin_borders_to_bin_centers,
+    get_Bruker_TIC
+)
 
 
 
@@ -38,7 +41,7 @@ def test_range_to_numpy_indices():
 @dataclass
 class BinnedData:
     data: np.array
-    bin_borders: dict
+    bin_borders: dict# good things: order of insertion is guaranteed! 
 
     def write(self, file: str):
         np.savez_compressed(
@@ -54,6 +57,9 @@ class BinnedData:
             for variable_name, bin_borders in self.bin_borders.items()
         }
 
+    def __getitem__(self, name):
+        return self.bin_borders.get(name,None)
+
     @classmethod
     def read(cls, file: str, mmap_mode: str='r'):
         packed = np.load(file=file, mmap_mode=mmap_mode)
@@ -63,7 +69,6 @@ class BinnedData:
             if a != "data":
                 bin_borders[a] = packed[a] 
         return cls(data=packed["data"], bin_borders=bin_borders)
-
 
     def to_xarray(self):
         import xarray
@@ -122,35 +127,62 @@ class BinnedData:
             sparse=True
         )
 
-    def get_retention_time_intensity_heatmap(self):
-        assert all(v in self.bin_borders for v in ('mz','intensity','retention_time','scan'))
-        
-
-    def plot(
-        self, 
-        main_vars=("scan","mz"), 
-        show=True,
-        transform=lambda x: x,
-        **kwargs
-    ):
+    def inv_ion_mobility_mz_QC_plot(self, *points, show=True):
+        assert all(x in self.bin_borders for x in ("inv_ion_mobility", "mz", "retention_time", "intensity")), "Missing variables for QC."
         import matplotlib.pyplot as plt
-        other_vars = [dim for dim in self.bin_borders if dim not in main_vars]
-        dims = [len(self.bin_borders[var])-1 for var in other_vars]
-        vmin = transform(self.data.min())
-        vmax = transform(self.data.max())
-        fig, axs = plt.subplots(*dims, sharex=True, sharey=True)
-        for idx in itertools.product(*map(range, dims)):
-            ax = axs[idx]
-            ax.imshow(
-                X=np.transpose(transform(self.data[idx])),
-                aspect='auto',
-                vmin=vmin,
-                vmax=vmax,
-                **kwargs
-            )
-        fig.subplots_adjust(wspace=0, hspace=0)
+        TIC = self.data.sum(axis=(0,1))
+        extent = np.hstack([
+            self.bin_centers['mz'][[0,-1]],
+            self.bin_centers['inv_ion_mobility'][[0,-1]]
+        ])
+        plt.imshow(TIC, aspect="auto", origin="lower",
+            extent=extent)
+        x,y = zip(*points)
+        plt.plot(x, y, c='red', linewidth=8)
+        plt.xlabel("m/z")
+        plt.ylabel("1/k0")
         if show:
             plt.show()
+
+    def get_data_for_ute_plot(self, rawdata, inequalities_params):
+        mz, iim = self.get_variables_for_mask("mz", "inv_ion_mobility")
+        multiply_charged = np.ones((iim.shape[0], mz.shape[1]), dtype=bool)
+        for a,b in inequalities_params:
+            multiply_charged &= iim <= a + b * mz
+        rt_min = self.bin_centers["retention_time"] / 60.0
+        Bruker_TIC = get_Bruker_TIC(rawdata, self.bin_borders["retention_time"])
+        Z = self.data[:,:,~multiply_charged].sum(axis=2)
+        ZZ = self.data[:,:,multiply_charged].sum(axis=2)
+        intensities = [Z.sum(axis=0),*ZZ]
+        intensities.reverse()
+        percentages = intensities / np.sum(intensities, axis=0)
+        return rt_min, Bruker_TIC, intensities, percentages
+
+    # def plot(
+    #     self, 
+    #     main_vars=("inv_ion_mobility","mz"), 
+    #     show=True,
+    #     transform=lambda x: x,
+    #     **kwargs
+    # ):
+    #     import matplotlib.pyplot as plt
+    #     other_vars = [dim for dim in self.bin_borders if dim not in main_vars]
+    #     dims = [len(self.bin_borders[var])-1 for var in other_vars]
+    #     vmin = transform(self.data.min())
+    #     vmax = transform(self.data.max())
+    #     fig, axs = plt.subplots(*dims, sharex=True, sharey=True)
+    #     for idx in itertools.product(*map(range, dims)):
+    #         ax = axs[idx]
+    #         ax.imshow(
+    #             X=np.transpose(transform(self.data[idx])),
+    #             aspect='auto',
+    #             vmin=vmin,
+    #             vmax=vmax,
+    #             **kwargs
+    #         )
+    #     fig.subplots_adjust(wspace=0, hspace=0)
+    #     if show:
+    #         plt.show()
 
 
 

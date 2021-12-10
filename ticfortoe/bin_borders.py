@@ -1,6 +1,6 @@
 import numpy as np
 
-from math import ceil, floor
+from math import ceil, floor, log10
 from opentimspy.opentims import OpenTIMS
 
 
@@ -18,6 +18,27 @@ def get_bin_borders(_min: float, _max: float, base=10) -> np.array:
         floor(_min / base) * base,
         (ceil(_max / base) + 1) * base,
         base
+    )
+
+def get_inv_ion_mobility_borders(
+    rawdata: OpenTIMS,
+    inv_ion_mobility_step: float=0.02
+) -> np.array:
+    """Get retention time bins' borders.
+
+    Arguments:
+        rawdata (OpenTIMS): The raw data connection.
+        inv_ion_mobility_step: Size of each bin in 1/k0.
+
+    Returns:
+        np.array: bin borders.    
+    """
+    step = .02
+    base = 10**ceil(-log10(step))
+    return np.arange(
+        floor(rawdata.min_inv_ion_mobility * base) / base,
+        ceil(rawdata.max_inv_ion_mobility * base) / base + step,
+        step
     )
 
 
