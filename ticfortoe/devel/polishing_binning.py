@@ -12,7 +12,7 @@ from ticfortoe.bin_borders import (
     get_retention_time_bin_borders,
     get_scan_bin_borders,
     get_mz_bin_borders,
-    get_inv_ion_mobility_borders
+    get_inv_ion_mobility_bin_borders
 )
 from ticfortoe.misc import (
     bin_borders_to_bin_centers,
@@ -24,6 +24,8 @@ from ticfortoe.plotting import ute_friendly_plot
 import numpy as np
 
 path = pathlib.Path('/home/matteo/raw_data/majestix/M201203_013_Slot1-1_1_708.d')
+
+
 rawdata = OpenTIMS(path)
 
 try:
@@ -36,7 +38,7 @@ except FileNotFoundError:
         verbose=True,
         intensity=get_intensity_bin_borders(),
         retention_time=get_retention_time_bin_borders(rawdata),
-        inv_ion_mobility=get_inv_ion_mobility_borders(rawdata),
+        inv_ion_mobility=get_inv_ion_mobility_bin_borders(rawdata),
         mz=get_mz_bin_borders(rawdata),
     )
 binned_data.to_xarray()

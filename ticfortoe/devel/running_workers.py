@@ -8,8 +8,9 @@ from ticfortoe.jobs import get_and_save_rasterized_TICs
 
 import os
 
+testing = os.uname().nodename == "pinguin"
 
-if os.uname().nodename == "pinguin":
+if testing:
     connection = Redis()
 else: # must be in the lab
     connection = Redis(
@@ -24,16 +25,17 @@ queue = Queue(
 # queue.empty()
 # queue.count
 
-
-# path = '/home/matteo/raw_data/majestix/M201203_013_Slot1-1_1_708.d'
-# res = queue.enqueue(
-#     get_and_save_rasterized_TICs,
-#     kwargs={
-#         "rawdata_path": path,
-#         "target_path": "/tmp/test4",
-#         "verbose": True
-#     }
-# )
+if testing:
+    kwargs = {
+        "rawdata_path": '/home/matteo/raw_data/majestix/M201203_013_Slot1-1_1_708.d',
+        "target_path": "/tmp/test13.npz",
+        "_verbose": True
+    }
+    # status = get_and_save_rasterized_TICs(**kwargs)
+    res = queue.enqueue(
+        get_and_save_rasterized_TICs,
+        kwargs=kwargs
+    )
 
 patterns = []
 for instr in ("gutamine", "falbala", "obelix", "majestix"):

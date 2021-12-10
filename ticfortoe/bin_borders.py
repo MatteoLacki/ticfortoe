@@ -20,7 +20,7 @@ def get_bin_borders(_min: float, _max: float, base=10) -> np.array:
         base
     )
 
-def get_inv_ion_mobility_borders(
+def get_inv_ion_mobility_bin_borders(
     rawdata: OpenTIMS,
     inv_ion_mobility_step: float=0.02
 ) -> np.array:
