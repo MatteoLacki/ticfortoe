@@ -16,3 +16,5 @@ py:
 	ve_ticfortoe/bin/ipython
 worker:
 	ve_ticfortoe/bin/python bin/worker.py ticfortoe
+michal_debug: install
+	ve_ticfortoe/bin/python ticfortoe/devel/debug_michal_code.py
