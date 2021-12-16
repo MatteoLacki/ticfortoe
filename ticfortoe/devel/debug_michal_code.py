@@ -17,7 +17,7 @@ from ticfortoe.bin_borders import (
 if os.uname().nodename == "pinguin":
     datapath = '/home/matteo/raw_data/shortruns/M210903_008_1_1_4704.d'
 else:
-    datapath = '/mnt/ms/old/raw_data/majestix/ARCHIVIERT/M2109/M210903_008_1_1_4704.d'
+    datapath = '/mnt/ms/old/rawdata/majestix/ARCHIVIERT/M2109/M210903_008_1_1_4704.d'
 datapath = Path(datapath)
 assert datapath.exists(), f"File {datapath} does not exists."
 
