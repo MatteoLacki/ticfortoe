@@ -67,6 +67,6 @@ ufp_args = (
     percentages
 ) = binned_data.get_data_for_ute_plot(rawdata, inequalities_params)
 
-ute_friendly_plot(*ufp_args, equation=" inverse_ion_mobility <= min(0.445 + 0.001*mz, 0.53 + 0.0008*mz)")
+ute_friendly_plot(*ufp_args, equation="inverse_ion_mobility <= min(0.445 + 0.001*mz, 0.53 + 0.0008*mz)")
 
 binned_data.inv_ion_mobility_mz_QC_plot(point0, point1, point2)

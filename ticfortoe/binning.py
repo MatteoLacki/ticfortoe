@@ -3,6 +3,7 @@ import fast_histogram
 import itertools
 import pathlib
 from typing import Dict, Iterable, List
+import pandas as pd
 
 from dataclasses import dataclass
 from tqdm import tqdm
@@ -11,7 +12,9 @@ from opentimspy.opentims import OpenTIMS, all_columns
 from ticfortoe.iter_ops import batch_iter, get_batch_cnt
 from ticfortoe.misc import (
     bin_borders_to_bin_centers,
-    get_Bruker_TIC
+    get_Bruker_TIC,
+    get_references_masses_and_inv_ion_mobilities,
+    get_monoisotopic_mz
 )
 
 
@@ -127,63 +130,69 @@ class BinnedData:
             sparse=True
         )
 
-    def inv_ion_mobility_mz_QC_plot(self, *points, show=True):
+    def get_data_for_inv_ion_mobility_mz_QC_plot(
+        self
+    ):
         assert all(x in self.bin_borders for x in ("inv_ion_mobility", "mz", "retention_time", "intensity")), "Missing variables for QC."
-        import matplotlib.pyplot as plt
         TIC = self.data.sum(axis=(0,1))
         extent = np.hstack([
             self.bin_centers['mz'][[0,-1]],
             self.bin_centers['inv_ion_mobility'][[0,-1]]
         ])
-        plt.imshow(TIC, aspect="auto", origin="lower",
-            extent=extent)
-        x,y = zip(*points)
-        plt.plot(x, y, c='red', linewidth=8)
-        plt.xlabel("m/z")
-        plt.ylabel("1/k0")
-        if show:
-            plt.show()
+        return TIC, extent
 
-    def get_data_for_ute_plot(self, rawdata, inequalities_params):
+
+    def get_intensities_in_and_out_a_halfplanes_intersection(
+        self,
+        inequalities_params
+    ):
+        required_column_names = [
+            "intensity",
+            "retention_time",
+            "inv_ion_mobility",
+            "mz"
+        ]
+        assert set(required_column_names) == set(self.bin_borders), f"Some variables are missing from {list(self.bin_borders)}"
         mz, iim = self.get_variables_for_mask("mz", "inv_ion_mobility")
-        multiply_charged = np.ones((iim.shape[0], mz.shape[1]), dtype=bool)
+        halfplanes_intersection = np.ones((iim.shape[0], mz.shape[1]), dtype=bool)
         for a,b in inequalities_params:
-            multiply_charged &= iim <= a + b * mz
+            halfplanes_intersection &= iim <= a + b * mz
         rt_min = self.bin_centers["retention_time"] / 60.0
-        Bruker_TIC = get_Bruker_TIC(rawdata, self.bin_borders["retention_time"])
-        Z = self.data[:,:,~multiply_charged].sum(axis=2)
-        ZZ = self.data[:,:,multiply_charged].sum(axis=2)
+        in_intersection = self.data[:,:,halfplanes_intersection].sum(axis=2)
+        outside_intersection = self.data[:,:,~halfplanes_intersection].sum(axis=2)
+        return in_intersection, outside_intersection
+
+
+    def get_data_for_ute_plot(
+        self, 
+        raw_folder_path, 
+        inequalities_params
+    ): 
+        ZZ, Z = self.get_intensities_in_and_out_a_halfplanes_intersection(inequalities_params)
+        Bruker_TIC = get_Bruker_TIC(
+            raw_folder_path,
+            self.bin_borders["retention_time"]
+        )
         intensities = [Z.sum(axis=0),*ZZ]
         intensities.reverse()
         percentages = intensities / np.sum(intensities, axis=0)
         return rt_min, Bruker_TIC, intensities, percentages
 
-    # def plot(
-    #     self, 
-    #     main_vars=("inv_ion_mobility","mz"), 
-    #     show=True,
-    #     transform=lambda x: x,
-    #     **kwargs
-    # ):
-    #     import matplotlib.pyplot as plt
-    #     other_vars = [dim for dim in self.bin_borders if dim not in main_vars]
-    #     dims = [len(self.bin_borders[var])-1 for var in other_vars]
-    #     vmin = transform(self.data.min())
-    #     vmax = transform(self.data.max())
-    #     fig, axs = plt.subplots(*dims, sharex=True, sharey=True)
-    #     for idx in itertools.product(*map(range, dims)):
-    #         ax = axs[idx]
-    #         ax.imshow(
-    #             X=np.transpose(transform(self.data[idx])),
-    #             aspect='auto',
-    #             vmin=vmin,
-    #             vmax=vmax,
-    #             **kwargs
-    #         )
-    #     fig.subplots_adjust(wspace=0, hspace=0)
-    #     if show:
-    #         plt.show()
 
+    def get_calibrants_df(self, analysis_tdf_path):
+        assert "mz" in self.bin_borders, "mz necessary"
+        assert "inv_ion_mobility" in self.bin_borders, "inv_ion_mobility necessary"
+        iim_calibrants = pd.DataFrame(
+            {
+                "formula":formula,
+                "mono_mz": get_monoisotopic_mz(formula),
+                "inv_ion_mobility": iim
+            }
+            for formula, iim in get_references_masses_and_inv_ion_mobilities(analysis_tdf_path)["inv_ion_mobility"].items()
+        )
+        iim_calibrants["mz_bin"] = np.searchsorted(self.bin_borders["mz"], iim_calibrants.mono_mz)
+        iim_calibrants["inv_ion_mobility_bin"] = np.searchsorted(self.bin_borders["inv_ion_mobility"], iim_calibrants.inv_ion_mobility)
+        return iim_calibrants
 
 
 
@@ -223,14 +232,17 @@ def get_aggregates(
     statistic_name: str="TIC",
     frame_batch_size: int=100, 
     verbose: bool=False,
+    frames: np.array=None,
     **bin_borders
 ) -> BinnedData:
     """A specific way of getting aggregates."""
     assert statistic_name in ("peak_count","TIC"), f"Unpermitted type of a statistic: must be either 'peak_count' of 'TIC', got {statistic_name}. Repent, pay Vatican, and return."
 
+    if frames is None:
+        frames = rawdata.ms1_frames
 
     frame_batches = batch_iter(
-        rawdata.ms1_frames,
+        frames,
         batch_size=frame_batch_size
     )
 

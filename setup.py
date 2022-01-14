@@ -29,6 +29,7 @@ setup(
         'tqdm',
         'pandas',
         'numpy==1.20',
-        'fast_histogram'
+        'fast_histogram',
+        'IsoSpecPy'
     ]
 )

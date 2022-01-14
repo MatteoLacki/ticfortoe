@@ -93,3 +93,14 @@ def get_scan_bin_borders(rawdata: OpenTIMS, scan_bin_size: int=10) -> np.array:
         base=scan_bin_size
     )
 
+def get_scan_bin_borders_full_coverage(rawdata: OpenTIMS) -> np.array:
+    """Get scan bins' borders so that each scan has one border.
+
+    Arguments:
+        rawdata (OpenTIMS): The raw data connection.
+        scan_bin_size: Size of each bin in numbers of scans.
+
+    Returns:
+        np.array: bin borders.    
+    """
+    return np.arange(rawdata.min_scan, rawdata.max_scan+2) - .5
