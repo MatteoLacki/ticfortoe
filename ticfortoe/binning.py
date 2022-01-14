@@ -16,7 +16,7 @@ from ticfortoe.misc import (
     get_references_masses_and_inv_ion_mobilities,
     get_monoisotopic_mz
 )
-
+from ticfortoe.numpy_ops import dense2sparse
 
 
 def range_to_numpy_indices(bin_range, bin_borders):
@@ -194,6 +194,21 @@ class BinnedData:
         iim_calibrants["inv_ion_mobility_bin"] = np.searchsorted(self.bin_borders["inv_ion_mobility"], iim_calibrants.inv_ion_mobility)
         return iim_calibrants
 
+    def to_sparse(self, stat_name="TIC", get_rid_of_0=True):
+        X = dense2sparse(self.data, get_rid_of_0=get_rid_of_0)
+        return pd.DataFrame(
+            X, 
+            columns=[f"{c}_bin" for c in self.bin_borders] + [stat_name,]
+        )
+
+    def get_borders_pd(self, var_name):
+        assert var_name in self.bin_borders, f"Variable {var_name} not among the binning dimensions."
+        bins = self.bin_borders[var_name]
+        return pd.DataFrame({
+            f"{var_name}_bin": np.arange(len(bins)-1),
+            f"{var_name}_start": bins[:-1],
+            f"{var_name}_end": bins[1:]
+        })
 
 
 def iter_aggregates(
